@@ -51,13 +51,14 @@ status_u current_status;
 
 void app_main() {
 	ESP_LOGI(TAG, "Start");
-	WiFi::Connect(SSID, PASSWORD);
-	ESP_LOGI(TAG, "IP: %s", inet_ntoa(*WiFi::getIp()));
+	WiFi::Connect(SSID, PASSWORD, 3000);
+	esp_ip4_addr_t *ip = WiFi::getIp();
+	ESP_LOGI(TAG, "IP: %s", ip ? inet_ntoa(*WiFi::getIp()) : "None");
 
 	gfx.init();
 	gfx.println("Hello, world!!");
 	char text[32] = {0};
-	snprintf(text, sizeof(text), "IP: %s", inet_ntoa(*WiFi::getIp()));
+	snprintf(text, sizeof(text), "IP: %s", ip ? inet_ntoa(*WiFi::getIp()) : "None");
 	gfx.println(text);
 
 	gpio_set_direction(HEAT_PIN, gpio_mode_t::GPIO_MODE_INPUT);
@@ -270,7 +271,7 @@ void set(int temperature, mode_e mode, int volume, int direction, bool power) {
 				  power ? "" : "power-off");
 
 	printf("length: %d\n%s\n", n, payload);
-	http_post_task(payload);
+	if(WiFi::isConnected()) http_post_task(payload);
 }
 
 void send(status_u status) {
